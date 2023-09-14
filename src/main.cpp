@@ -1,16 +1,28 @@
 /*!
  * \author Cody Roberson
- * \details Arduino based control firmware for the Nano 33 IOT and Nano Every
+ * \details AliCPT Bias Board Control Firmware
  * \version 2.0
  * \date 20230913
- * \copyright 2023 © Arizona State University, All Rights Reserved.
- *
- * Uses xmodem crc16 algorithm sourced here:
- *  http://www.nongnu.org/avr-libc/user-manual/group__util__crc.html
- *
- * Serial Test Command
- * 55 00 00 00 03 00 00 00 02 00 00 00 01 00 00 00 59 7b 00 00
- * [0x55,0x00,0x00,0x00,0x03,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x59,0x7b,0x00,0x00]
+ * \copyright
+    AliCPT Bias Board Control Firmware
+    Copyright (C) 2023 FotonX
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+  Uses xmodem crc16 algorithm sourced here:
+    http://www.nongnu.org/avr-libc/user-manual/group__util__crc.html
+
  */
 #include <Arduino.h>
 #include <Wire.h>

@@ -57,7 +57,7 @@ class SerialController:
         # Build Payload
         payload = struct.pack("<I", cmd)
         assert (
-            len(args) == 3
+            len(args) == 4
         ), "Microcontroller expects to fill a struct from the data here"
 
         for a in args:
