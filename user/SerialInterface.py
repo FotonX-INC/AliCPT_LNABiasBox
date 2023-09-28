@@ -28,16 +28,18 @@ class SerialController:
         ser.port = sercom
         ser.baudrate = 115200
         ser.timeout = SERIAL_READ_TIMEOUT
+        self.pinstate = 0
 
-    def __open(self):
+    def open(self):
         if self.ser.is_open:
             return True
         try:
             self.ser.open()
+            sleep(0.1)
         except Exception as e:
             raise e
 
-    def __close(self):
+    def close(self):
         if not self.ser.is_open:
             return True
         else:
@@ -57,7 +59,7 @@ class SerialController:
         # Build Payload
         payload = struct.pack("<I", cmd)
         assert (
-            len(args) == 4
+            len(args) == 3
         ), "Microcontroller expects to fill a struct from the data here"
 
         for a in args:
@@ -70,14 +72,15 @@ class SerialController:
         payload = payload + crc.calc_crc(payload)
 
         # Send Payload
-        self.__open()
+        # self.open()
+        # sleep(0.1)
         self.ser.write(payload)
-
         # Read and Return
         packet = self.ser.read(SIZET_MCU_PACKET_STRUCT)
-        self.__close()
+        # self.close()
 
         if len(packet) != SIZET_MCU_PACKET_STRUCT:
+            print(len(packet))
             raise BadPacketException
 
         # Check checksum
@@ -108,7 +111,7 @@ class SerialController:
         return potvalue
 
     def set_wiper(self, chan, wipernum, value):
-        packet = self.transact(3, chan, wipernum, value)
+        packet = self.transact(3, chan, wipernum, value & 0xFF)
         cmd, i2cstatus, arg2, arg3, _ = struct.unpack("<IIIII", packet)
         return i2cstatus == 0
 
@@ -117,17 +120,75 @@ class SerialController:
         cmd, gpiostate, arg2, arg3, _ = struct.unpack("<IIIII", packet)
         return gpiostate & 0xFFFF
 
-    def set_gpio(self, pinstates):
+    def set_allgpio(self, pinstates):
         packet = self.transact(5, pinstates, 0, 0)
         cmd, i2cstatus, arg2, arg3, _ = struct.unpack("<IIIII", packet)
         return i2cstatus == 0
 
     def set_gpio(self, pin, state):
-        packet = self.transact(6, pin, state, 0)
+        p = self.pinstate = self.get_gpio()
+        if state:
+            p = p | (1 << pin)
+            self.pinstate = p
+        else:
+            p = p & (~(1 << pin))
+            self.pinstate = p
+        packet = self.transact(5, p, 0, 0)
         cmd, i2cstatus, arg2, arg3, _ = struct.unpack("<IIIII", packet)
         return i2cstatus == 0
 
-    def get_iv(self, chan):
+    def get_bsi(self, chan):
         packet = self.transact(7, chan, 0, 0)
         cmd, busV, shuntV, current, _ = struct.unpack("<IfffI", packet)
         return round(busV, 6), round(shuntV, 6), round(current, 6)
+
+    def testfloat(self):
+        packet = self.transact(8, 0, 0, 0)
+        cmd, busV, shuntV, current, _ = struct.unpack("<IfffI", packet)
+        return round(busV, 6), round(shuntV, 6), round(current, 6)
+
+
+def test():
+    s = SerialController("COM10")
+    s.open()
+    print(f"Connected? {s.test_connection()}")
+    s.set_allgpio(0)
+    s.set_allgpio(0b11)
+    s.set_gpio(2, 1)
+    s.set_wiper(1, 0, 79)
+    s.set_wiper(1, 1, 0)
+    s.set_wiper(1, 2, 0)
+    s.set_wiper(1, 3, 0)
+    a, b, c = s.get_bsi(3 - 1)
+    s.set_wiper(1, 0, 78)
+    s.set_wiper(1, 1, 0)
+    s.set_wiper(1, 2, 0)
+    s.set_wiper(1, 3, 0)
+    a, b, c = s.get_bsi(3 - 1)
+    print(s.get_wiper(1, 0))
+    print(s.get_wiper(1, 1))
+    print(s.get_wiper(1, 2))
+    print(s.get_wiper(1, 3))
+    print(s.get_wiper(2, 0))
+    print(s.get_wiper(2, 1))
+    print(s.get_wiper(2, 2))
+    print(s.get_wiper(2, 3))
+    s.set_wiper(1, 0, 200)
+    print(s.get_wiper(1, 0))
+    print(s.get_wiper(1, 1))
+    print(s.get_wiper(1, 2))
+    print(s.get_wiper(1, 3))
+    print(s.get_wiper(2, 0))
+    print(s.get_wiper(2, 1))
+    print(s.get_wiper(2, 2))
+    print(s.get_wiper(2, 3))
+    s.set_allgpio(0)
+    s.set_wiper(1, 0, 0)
+    s.set_wiper(1, 1, 0)
+    s.set_wiper(1, 2, 0)
+    s.set_wiper(1, 3, 0)
+    s.close()
+
+
+if __name__ == "__main__":
+    test()

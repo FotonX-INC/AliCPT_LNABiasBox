@@ -23,6 +23,8 @@
   Uses xmodem crc16 algorithm sourced here:
     http://www.nongnu.org/avr-libc/user-manual/group__util__crc.html
 
+FIXME: getwiper returns 255
+FIXME: set_individual_expander  Sets only one pin at a time instead of flipping the state of the desired pin
  */
 #include <Arduino.h>
 #include <Wire.h>
@@ -47,9 +49,24 @@
 struct Packet
 {
   uint32_t command;
-  uint32_t arg1;
-  uint32_t arg2;
-  uint32_t arg3;
+  union
+  {
+    uint32_t u;
+    float f;
+  } arg1;
+
+  union
+  {
+    uint32_t u;
+    float f;
+  } arg2;
+
+  union
+  {
+    uint32_t u;
+    float f;
+  } arg3;
+
   uint32_t checksum;
 };
 
@@ -85,6 +102,7 @@ uint16_t calc_crc(char *msg, int n)
 uint16_t IO_EXPANDER_PINSTATE = 0;
 int current_LTC_addr = 0;
 Adafruit_INA219 *currsense[8];
+uint32_t wiperValues[8];
 int setExpander(int pin, int state)
 {
   IO_EXPANDER_PINSTATE ^= (-state ^ IO_EXPANDER_PINSTATE) & (1 << pin);
@@ -117,16 +135,16 @@ int getWiper(uint8_t dpot_i2c_addr, uint8_t wiper, uint32_t *wipervalue)
   int status = 0;
 
   Wire.beginTransmission(dpot_i2c_addr);
-  Wire.write(__AD5144_CMD_READ_RDAC_0 + wiper); // Write to wiper/RDAC1
-  Wire.write(__AD5144_CMD_READ_RDAC_8);         // write value to chip
+  Wire.write(__AD5144_CMD_READ_RDAC_8 + wiper); // Write to wiper/RDAC1
+  Wire.write(__AD5144_CMD_READ_RDAC_0);         // write value to chip
   status = Wire.endTransmission();
-
-  if (status == 0)
-  {
-    Wire.beginTransmission(dpot_i2c_addr);
-    *wipervalue = Wire.read() & 0xFF;
-    status = Wire.endTransmission();
-  }
+  if (status != 0)
+    return status;
+  delay(10);
+  Wire.beginTransmission(dpot_i2c_addr);
+  Wire.read();
+  *wipervalue = (uint8_t)Wire.read();
+  status = Wire.endTransmission();
 
   return status;
 }
@@ -152,13 +170,26 @@ void setup()
 {
   Serial.begin(115200);
   Wire.begin();
-  connect_i2c_bus(__I2C_REPEATER_I2C_ADDR);
+  connect_i2c_bus(0);
   delay(1);
   for (int i = 0; i < 8; i++)
   {
     currsense[i] = new Adafruit_INA219(__CURR_SENSE_BASE_I2C_ADDR + i);
     currsense[i]->begin();
   }
+  setExpander(0);
+  setExpander(1);
+  setWiper(__DIGITALPOT_1_I2C_ADDR, 0, 0);
+  setWiper(__DIGITALPOT_1_I2C_ADDR, 1, 0);
+  setWiper(__DIGITALPOT_1_I2C_ADDR, 2, 0);
+  setWiper(__DIGITALPOT_1_I2C_ADDR, 3, 0);
+  setWiper(__DIGITALPOT_2_I2C_ADDR, 0, 0);
+  setWiper(__DIGITALPOT_2_I2C_ADDR, 1, 0);
+  setWiper(__DIGITALPOT_2_I2C_ADDR, 2, 0);
+  setWiper(__DIGITALPOT_2_I2C_ADDR, 3, 0);
+  setExpander(0b111111111);
+
+  disconnect_i2c_bus(0);
 }
 
 /*!
@@ -167,51 +198,69 @@ void setup()
  */
 Packet do_command(Packet pkt)
 {
+  connect_i2c_bus(0);
   Packet retpacket;
+  uint32_t v = 0;
   switch (pkt.command)
   {
   case 1: // Check Connection
     retpacket.command = pkt.command;
-    retpacket.arg1 = 1;
+    retpacket.arg1.u = 1;
+    retpacket.arg2.u = 2;
+    retpacket.arg3.u = 3;
     break;
   case 2: // get wiper
     retpacket.command = pkt.command;
-    if (pkt.arg1 == 1)
-      retpacket.arg2 = getWiper(__DIGITALPOT_1_I2C_ADDR, pkt.arg2, &(retpacket.arg1));
+    if (pkt.arg1.u == 1)
+      retpacket.arg1.u = wiperValues[pkt.arg2.u];
     else
-      retpacket.arg2 = getWiper(__DIGITALPOT_2_I2C_ADDR, pkt.arg2, &(retpacket.arg1));
+      retpacket.arg1.u = wiperValues[4 + pkt.arg2.u];
     break;
   case 3: // set wiper
     retpacket.command = pkt.command;
-    if (pkt.arg1 == 1)
-      retpacket.arg1 = setWiper(__DIGITALPOT_1_I2C_ADDR, pkt.arg2, pkt.arg3);
+    if (pkt.arg1.u == 1)
+    {
+      retpacket.arg1.u = setWiper(__DIGITALPOT_1_I2C_ADDR, pkt.arg2.u, pkt.arg3.u);
+      wiperValues[pkt.arg2.u] = pkt.arg3.u;
+    }
     else
-      retpacket.arg1 = setWiper(__DIGITALPOT_2_I2C_ADDR, pkt.arg2, pkt.arg3);
+    {
+      retpacket.arg1.u = setWiper(__DIGITALPOT_2_I2C_ADDR, pkt.arg2.u, pkt.arg3.u);
+      wiperValues[pkt.arg2.u + 4] = pkt.arg3.u;
+    }
     break;
   case 4: // get gpio
     retpacket.command = pkt.command;
-    retpacket.arg1 = IO_EXPANDER_PINSTATE;
+    retpacket.arg1.u = IO_EXPANDER_PINSTATE;
     break;
   case 5: // set all gpio
     retpacket.command = pkt.command;
-    retpacket.arg1 = setExpander((uint16_t)pkt.arg1);
+    retpacket.arg1.u = setExpander((uint16_t)pkt.arg1.u);
+    retpacket.arg2.u = 0;
+    retpacket.arg3.u = 0;
     break;
   case 6: // set gpio pin
     retpacket.command = pkt.command;
-    retpacket.arg1 = setExpander(pkt.arg1, pkt.arg2);
+    retpacket.arg1.u = setExpander(pkt.arg1.u, pkt.arg2.u);
     break;
   case 7: // get IV from INA219
     retpacket.command = pkt.command;
-    retpacket.arg1 = (uint32_t)currsense[pkt.arg1]->getBusVoltage_V();
-    retpacket.arg2 = (uint32_t)currsense[pkt.arg1]->getShuntVoltage_mV();
-    retpacket.arg3 = (uint32_t)currsense[pkt.arg1]->getCurrent_mA();
+    retpacket.arg1.f = currsense[pkt.arg1.u]->getBusVoltage_V();
+    retpacket.arg2.f = currsense[pkt.arg1.u]->getShuntVoltage_mV();
+    retpacket.arg3.f = currsense[pkt.arg1.u]->getCurrent_mA();
     break;
-
+  case 8: // float test
+    retpacket.command = pkt.command;
+    retpacket.arg1.f = 12.8;
+    retpacket.arg2.f = 0.6;
+    retpacket.arg3.f = 3.14159;
+    break;
   default:
     retpacket.command = 0xffffffff;
     break;
   }
   retpacket.checksum = calc_crc((char *)&retpacket, sizeof(retpacket) - sizeof(retpacket.checksum));
+  disconnect_i2c_bus(0);
   return retpacket;
 }
 
@@ -246,5 +295,5 @@ void loop()
       Serial.write((uint8_t *)&ret, sizeof(ret));
     }
   }
-  delay(50);
+  delay(1);
 }
