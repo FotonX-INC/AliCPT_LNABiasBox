@@ -1,8 +1,7 @@
-from time import sleep
+from time import sleep, strftime, localtime
 import SerialInterface
 import numpy as np
-import sys
-import argparse
+import serial.tools.list_ports
 
 """Notes:
 
@@ -20,7 +19,7 @@ Vreg 8 = LNA2 G = INA 8
 Python Interface: (Using 1 line commands, not a GUI)
 
 [*]vTES Ch V(uV) //Adjusts POT wiper and then reads INA values until I x 400uOhm = V(uV) on Ch (Vreg 1-4)
-[*]iTES Ch I(mA) //Adjusts POT wiper and then reads INA values until I = I(mA) on Ch (Vreg 1-4)
+[*]iSHUNT Ch I(mA) //Adjusts POT wiper and then reads INA values until I = I(mA) on Ch (Vreg 1-4)
 [*]vLNA Ch D V(V) //Adjusts POT wiper and then reads INA values until V(bus) - V(shunt) = V(V) on Ch (Vreg 5 and 7)
 [*]iLNA Ch I(mA) //Adjusts POT wiper and then reads INA values until I = I(mA) for Ch
 [*]vLNA Ch G V(V) //Adjusts POT wiper and then reads INA values until V(bus) = V(V) on Ch (Vreg 6 and 8)
@@ -29,6 +28,8 @@ Python Interface: (Using 1 line commands, not a GUI)
 [*]getvTES Ch
 [ ]get all iv //Reads INA values for all Ch. Labels should be displayed as TES1, TES2,... LNA1 D, LNA2 D...
 			 INA7 and INA8 are not used to measure current so only report LNA VG (VG voltages need a sign change +-).
+
+# FIXME: DETERMINE CAUSE OF 0 VALUE WIPER SETTINGS.
 """
 
 VTES_TOLERANCE = 0.05
@@ -45,14 +46,17 @@ NAMES = [
     "INA TES4",
     "LNA D Bias 1",
     "LNA D Bias 2",
+    "VG LNA 1",
+    "VG LMA 2",
 ]
 
 
-class LNA:
+class Bias:
     def __init__(self, SerialPort) -> None:
         self.si = SerialInterface.SerialController(SerialPort)
         self.si.open()
         self.lna_wiper_g = [0, 0]
+        self.port = SerialPort
 
     def end(self):
         self.si.close()
@@ -88,7 +92,7 @@ class LNA:
                 self.si.set_wiper(1, ch - 1, potvalue)
             i += 1
 
-    def iTES(self, ch, imA):
+    def iSHUNT(self, ch, imA):
         potvalue = self.si.get_wiper(1, ch - 1)
 
         MAXITER = 275
@@ -207,6 +211,13 @@ class LNA:
             i += 1
 
     def vLNA_G(self, lna, voltage):
+        """aldfjalsdfjajf;la4rafoidsf
+
+        :param lna: asdfkalsdfjasljdfjk
+        :type lna: asldfjkasldjkf
+        :param voltage: awelkjasdfljqwrjio
+        :type voltage: asdlfkjasdlfkj
+        """
         wiper = int(round(voltage / 0.000784))
         if wiper > 255:
             wiper = 255
@@ -253,9 +264,32 @@ class LNA:
         print(f"\nVG LNA2 = {self.lna_wiper_g[1]*.000784}")
         print("\n\n")
 
+    def getIVtoFile(self):
+        ts = strftime("%Y%m%d", localtime())
+        fn = f"bias-ivs-{ts}.csv"
+        csv = open(fn, "a")
+        e = csv.seek(0, 2)
+        if e == 0:
+            csv.write(
+                "Channel,INA219,Bus Voltage (V),Shunt Voltage (mV),Current (mA),VG LNA1,VG LNA2\n"
+            )
+
+        busVs = np.zeros(6)
+        shuntMvs = np.zeros(6)
+        currents = np.zeros(6)
+        for i in busVs:
+            b, s, curr = self.si.get_bsi(INA219CHANMAP[i + 1] - 1)
+            busVs[i] = b
+            shuntMvs[i] = s
+            currents[i] = curr / 100
+            csv.write(f"{NAMES[i]},{INA219CHANMAP[i+1]},{b},{s},{curr/100},-\n")
+        csv.write(f"{NAMES[6]},-,-,-,-,{self.lna_wiper_g[0]*.000784}\n")
+        csv.write(f"{NAMES[7]},-,-,-,-,{self.lna_wiper_g[1]*.000784}\n")
+        csv.close()
+
 
 def test():
-    l = LNA("COM10")
+    l = Bias("COM10")
     l.si.set_allgpio(0b111111111)
     # l.si.set_gpio(0, 1)
     # l.si.set_gpio(1, 1)

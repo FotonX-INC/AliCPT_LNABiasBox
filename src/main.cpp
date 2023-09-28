@@ -102,7 +102,8 @@ uint16_t calc_crc(char *msg, int n)
 uint16_t IO_EXPANDER_PINSTATE = 0;
 int current_LTC_addr = 0;
 Adafruit_INA219 *currsense[8];
-uint32_t wiperValues[8];
+uint32_t wiper1Values[4];
+uint32_t wiper2Values[4];
 int setExpander(int pin, int state)
 {
   IO_EXPANDER_PINSTATE ^= (-state ^ IO_EXPANDER_PINSTATE) & (1 << pin);
@@ -212,21 +213,21 @@ Packet do_command(Packet pkt)
   case 2: // get wiper
     retpacket.command = pkt.command;
     if (pkt.arg1.u == 1)
-      retpacket.arg1.u = wiperValues[pkt.arg2.u];
+      retpacket.arg1.u = wiper1Values[pkt.arg2.u];
     else
-      retpacket.arg1.u = wiperValues[4 + pkt.arg2.u];
+      retpacket.arg1.u = wiper2Values[pkt.arg2.u];
     break;
   case 3: // set wiper
     retpacket.command = pkt.command;
     if (pkt.arg1.u == 1)
     {
       retpacket.arg1.u = setWiper(__DIGITALPOT_1_I2C_ADDR, pkt.arg2.u, pkt.arg3.u);
-      wiperValues[pkt.arg2.u] = pkt.arg3.u;
+      wiper1Values[pkt.arg2.u] = pkt.arg3.u;
     }
     else
     {
       retpacket.arg1.u = setWiper(__DIGITALPOT_2_I2C_ADDR, pkt.arg2.u, pkt.arg3.u);
-      wiperValues[pkt.arg2.u + 4] = pkt.arg3.u;
+      wiper2Values[pkt.arg2.u] = pkt.arg3.u;
     }
     break;
   case 4: // get gpio

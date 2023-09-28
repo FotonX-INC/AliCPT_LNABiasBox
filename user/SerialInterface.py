@@ -24,7 +24,7 @@ class InvalidCommandException(Exception):
 
 class SerialController:
     def __init__(self, sercom) -> None:
-        ser = self.ser = serial.Serial()
+        ser = self.ser = serial.Serial(dsrdtr=False)
         ser.port = sercom
         ser.baudrate = 115200
         ser.timeout = SERIAL_READ_TIMEOUT
@@ -36,6 +36,11 @@ class SerialController:
         try:
             self.ser.open()
             sleep(0.1)
+        except serial.serialutil.SerialException:
+            print(
+                "\n******************************************\nCOULDN'T FIND COM PORT\n******************************************\n"
+            )
+            exit()
         except Exception as e:
             raise e
 
