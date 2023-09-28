@@ -23,7 +23,7 @@ Python Interface: (Using 1 line commands, not a GUI)
 [*]iTES Ch I(mA) //Adjusts POT wiper and then reads INA values until I = I(mA) on Ch (Vreg 1-4)
 [*]vLNA Ch D V(V) //Adjusts POT wiper and then reads INA values until V(bus) - V(shunt) = V(V) on Ch (Vreg 5 and 7)
 [*]iLNA Ch I(mA) //Adjusts POT wiper and then reads INA values until I = I(mA) for Ch
-[ ]vLNA Ch G V(V) //Adjusts POT wiper and then reads INA values until V(bus) = V(V) on Ch (Vreg 6 and 8)
+[*]vLNA Ch G V(V) //Adjusts POT wiper and then reads INA values until V(bus) = V(V) on Ch (Vreg 6 and 8)
 
 [*]getiTES Ch
 [*]getvTES Ch
@@ -38,12 +38,21 @@ VLNA_G_TOLERANCE = 0.01
 ILNA_TOLERANCE = 0.01
 
 INA219CHANMAP = [0, 3, 4, 5, 6, 1, 2]
+NAMES = [
+    "INA TES1",
+    "INA TES2",
+    "INA TES3",
+    "INA TES4",
+    "LNA D Bias 1",
+    "LNA D Bias 2",
+]
 
 
 class LNA:
     def __init__(self, SerialPort) -> None:
         self.si = SerialInterface.SerialController(SerialPort)
         self.si.open()
+        self.lna_wiper_g = [0, 0]
 
     def end(self):
         self.si.close()
@@ -197,6 +206,16 @@ class LNA:
                 self.si.set_wiper(2, wiper, potvalue)
             i += 1
 
+    def vLNA_G(self, lna, voltage):
+        wiper = int(round(voltage / 0.000784))
+        if wiper > 255:
+            wiper = 255
+        if wiper < 0:
+            wiper = 0
+        self.si.set_wiper(2, (lna * 2) - 1, wiper)
+
+        self.lna_wiper_g[lna - 1] = wiper
+
     def get_vTES(self, ch):
         vals = np.zeros(10)
         for i, v in enumerate(vals):
@@ -212,6 +231,28 @@ class LNA:
             vals[i] = curr
         return np.average(vals) * 1e-2
 
+    def getAllIV(self):
+        busVs = np.zeros(6)
+        shuntMvs = np.zeros(6)
+        currents = np.zeros(6)
+        print(
+            "**************************************** INA READINGS ****************************************"
+        )
+        print(
+            "Channel \t\t INA219 \t Bus Voltage (V) \t Shunt Voltage (mV) \t\t Current (mA)"
+        )
+        for i in range(6):
+            b, s, curr = self.si.get_bsi(INA219CHANMAP[i + 1] - 1)
+            busVs[i] = b
+            shuntMvs[i] = s
+            currents[i] = curr / 100
+            print(
+                f"{NAMES[i]}    \t\t       {INA219CHANMAP[i+1]}       \t       {b}        \t      {s}      \t        {curr/100}              "
+            )
+        print(f"\nVG LNA1 = {self.lna_wiper_g[0]*.000784}")
+        print(f"\nVG LNA2 = {self.lna_wiper_g[1]*.000784}")
+        print("\n\n")
+
 
 def test():
     l = LNA("COM10")
@@ -219,11 +260,19 @@ def test():
     # l.si.set_gpio(0, 1)
     # l.si.set_gpio(1, 1)
     # l.si.set_gpio(5, 1)
-    l.si.set_wiper(2, 1, 25)
+    l.si.set_wiper(1, 0, 255)
+    l.si.set_wiper(1, 1, 255)
+    l.si.set_wiper(1, 2, 255)
+    l.si.set_wiper(1, 3, 255)
+    l.si.set_wiper(2, 2 - 1, 255)
+    l.si.set_wiper(1, 2, 255)
     # l.vTES(1, 1.00)
     # l.iTES(1, 1.3)
     # l.vLNA_D(1, 3.0)
     # l.iLNA(1, 20)
+    l.vLNA_G(1, 0.000784)
+    l.vLNA_G(2, 0.000784 * 2)
+    l.getAllIV()
     l.end()
 
 
