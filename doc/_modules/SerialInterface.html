@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SerialInterface &mdash; AliCPT TES Bias System Python Interface 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            AliCPT TES Bias System Python Interface
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">user</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AliCPT TES Bias System Python Interface</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">SerialInterface</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for SerialInterface</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">serial</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">crcxmodem</span> <span class="k">as</span> <span class="nn">crc</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="n">SERIAL_READ_TIMEOUT</span> <span class="o">=</span> <span class="mf">0.250</span>  <span class="c1"># Seconds</span>
+<span class="n">SIZET_MCU_PACKET_STRUCT</span> <span class="o">=</span> <span class="mi">20</span>
+
+
+<div class="viewcode-block" id="BadPacketException">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.BadPacketException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadPacketException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;Received Malformed or No Packet from MCU&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InvalidChecksumException">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.InvalidChecksumException">[docs]</a>
+<span class="k">class</span> <span class="nc">InvalidChecksumException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;Checksum mismatch when communicating with MC&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InvalidCommandException">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.InvalidCommandException">[docs]</a>
+<span class="k">class</span> <span class="nc">InvalidCommandException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;Issued invalid command to MC&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SerialController">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController">[docs]</a>
+<span class="k">class</span> <span class="nc">SerialController</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sercom</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ser</span> <span class="o">=</span> <span class="n">serial</span><span class="o">.</span><span class="n">Serial</span><span class="p">(</span><span class="n">dsrdtr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ser</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">sercom</span>
+        <span class="n">ser</span><span class="o">.</span><span class="n">baudrate</span> <span class="o">=</span> <span class="mi">115200</span>
+        <span class="n">ser</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">SERIAL_READ_TIMEOUT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pinstate</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="SerialController.open">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.open">[docs]</a>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ser</span><span class="o">.</span><span class="n">is_open</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ser</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">serial</span><span class="o">.</span><span class="n">serialutil</span><span class="o">.</span><span class="n">SerialException</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">******************************************</span><span class="se">\n</span><span class="s2">COULDN&#39;T FIND COM PORT</span><span class="se">\n</span><span class="s2">******************************************</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">e</span></div>
+
+
+<div class="viewcode-block" id="SerialController.close">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ser</span><span class="o">.</span><span class="n">is_open</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">e</span>
+            <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SerialController.transact">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.transact">[docs]</a>
+    <span class="k">def</span> <span class="nf">transact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Processes serial transaction</span>
+
+<span class="sd">        :param cmd: Command</span>
+<span class="sd">        :type cmd: int</span>
+<span class="sd">        :raises TypeError: args must be an int or float since we&#39;re utilizing ctypes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Build Payload</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&lt;I&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+        <span class="p">),</span> <span class="s2">&quot;Microcontroller expects to fill a struct from the data here&quot;</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">payload</span> <span class="o">=</span> <span class="n">payload</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&lt;I&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="n">payload</span> <span class="o">=</span> <span class="n">payload</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&lt;f&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unsupported type, must use int or float&quot;</span><span class="p">)</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="n">payload</span> <span class="o">+</span> <span class="n">crc</span><span class="o">.</span><span class="n">calc_crc</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+
+        <span class="c1"># Print and Read</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ser</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">SIZET_MCU_PACKET_STRUCT</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">packet</span><span class="p">)</span> <span class="o">!=</span> <span class="n">SIZET_MCU_PACKET_STRUCT</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">packet</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">BadPacketException</span>
+
+        <span class="c1"># Check checksum</span>
+        <span class="n">pktchecksum</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+        <span class="n">newchecksum</span> <span class="o">=</span> <span class="n">crc</span><span class="o">.</span><span class="n">calc_crc</span><span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">4</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">pktchecksum</span> <span class="o">!=</span> <span class="n">newchecksum</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidChecksumException</span>
+
+        <span class="c1"># Check for errors</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IIIII&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="mh">0xFFFFFFFF</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidCommandException</span>
+        <span class="k">elif</span> <span class="n">cmd</span> <span class="o">==</span> <span class="mh">0xFFFFFFFE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidChecksumException</span>
+        <span class="k">return</span> <span class="n">packet</span></div>
+
+
+<div class="viewcode-block" id="SerialController.test_connection">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.test_connection">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transact</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">isConnected</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="n">arg3</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IIIII&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">isConnected</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="SerialController.get_wiper">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.get_wiper">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_wiper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">,</span> <span class="n">wipernum</span><span class="p">):</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transact</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">chan</span><span class="p">,</span> <span class="n">wipernum</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">potvalue</span><span class="p">,</span> <span class="n">i2cstatus</span><span class="p">,</span> <span class="n">arg3</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IIIII&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">potvalue</span></div>
+
+
+<div class="viewcode-block" id="SerialController.set_wiper">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.set_wiper">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_wiper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">,</span> <span class="n">wipernum</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transact</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">chan</span><span class="p">,</span> <span class="n">wipernum</span><span class="p">,</span> <span class="n">value</span> <span class="o">&amp;</span> <span class="mh">0xFF</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">i2cstatus</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="n">arg3</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IIIII&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">i2cstatus</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="SerialController.get_gpio">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.get_gpio">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_gpio</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transact</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">gpiostate</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="n">arg3</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IIIII&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gpiostate</span> <span class="o">&amp;</span> <span class="mh">0xFFFF</span></div>
+
+
+<div class="viewcode-block" id="SerialController.set_allgpio">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.set_allgpio">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_allgpio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pinstates</span><span class="p">):</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transact</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">pinstates</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">i2cstatus</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="n">arg3</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IIIII&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">i2cstatus</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="SerialController.set_gpio">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.set_gpio">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_gpio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pin</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinstate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gpio</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">state</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">p</span> <span class="o">|</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">pin</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pinstate</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">p</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">pin</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pinstate</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transact</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">i2cstatus</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="n">arg3</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IIIII&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">i2cstatus</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="SerialController.get_bsi">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.get_bsi">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_bsi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">):</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transact</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">chan</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">busV</span><span class="p">,</span> <span class="n">shuntV</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IfffI&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">busV</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">shuntV</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SerialController.testfloat">
+<a class="viewcode-back" href="../SerialInterface.html#SerialInterface.SerialController.testfloat">[docs]</a>
+    <span class="k">def</span> <span class="nf">testfloat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transact</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">busV</span><span class="p">,</span> <span class="n">shuntV</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;IfffI&quot;</span><span class="p">,</span> <span class="n">packet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">busV</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">shuntV</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, FotonX.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

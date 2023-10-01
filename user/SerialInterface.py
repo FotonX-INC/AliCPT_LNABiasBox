@@ -76,13 +76,9 @@ class SerialController:
                 raise TypeError("Unsupported type, must use int or float")
         payload = payload + crc.calc_crc(payload)
 
-        # Send Payload
-        # self.open()
-        # sleep(0.1)
+        # Print and Read
         self.ser.write(payload)
-        # Read and Return
         packet = self.ser.read(SIZET_MCU_PACKET_STRUCT)
-        # self.close()
 
         if len(packet) != SIZET_MCU_PACKET_STRUCT:
             print(len(packet))
@@ -151,49 +147,3 @@ class SerialController:
         packet = self.transact(8, 0, 0, 0)
         cmd, busV, shuntV, current, _ = struct.unpack("<IfffI", packet)
         return round(busV, 6), round(shuntV, 6), round(current, 6)
-
-
-def test():
-    s = SerialController("COM10")
-    s.open()
-    print(f"Connected? {s.test_connection()}")
-    s.set_allgpio(0)
-    s.set_allgpio(0b11)
-    s.set_gpio(2, 1)
-    s.set_wiper(1, 0, 79)
-    s.set_wiper(1, 1, 0)
-    s.set_wiper(1, 2, 0)
-    s.set_wiper(1, 3, 0)
-    a, b, c = s.get_bsi(3 - 1)
-    s.set_wiper(1, 0, 78)
-    s.set_wiper(1, 1, 0)
-    s.set_wiper(1, 2, 0)
-    s.set_wiper(1, 3, 0)
-    a, b, c = s.get_bsi(3 - 1)
-    print(s.get_wiper(1, 0))
-    print(s.get_wiper(1, 1))
-    print(s.get_wiper(1, 2))
-    print(s.get_wiper(1, 3))
-    print(s.get_wiper(2, 0))
-    print(s.get_wiper(2, 1))
-    print(s.get_wiper(2, 2))
-    print(s.get_wiper(2, 3))
-    s.set_wiper(1, 0, 200)
-    print(s.get_wiper(1, 0))
-    print(s.get_wiper(1, 1))
-    print(s.get_wiper(1, 2))
-    print(s.get_wiper(1, 3))
-    print(s.get_wiper(2, 0))
-    print(s.get_wiper(2, 1))
-    print(s.get_wiper(2, 2))
-    print(s.get_wiper(2, 3))
-    s.set_allgpio(0)
-    s.set_wiper(1, 0, 0)
-    s.set_wiper(1, 1, 0)
-    s.set_wiper(1, 2, 0)
-    s.set_wiper(1, 3, 0)
-    s.close()
-
-
-if __name__ == "__main__":
-    test()

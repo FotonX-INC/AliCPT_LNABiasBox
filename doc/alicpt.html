@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>alicpt module &mdash; AliCPT TES Bias System Python Interface 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="user" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            AliCPT TES Bias System Python Interface
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">user</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">alicpt module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#alicpt.Bias"><code class="docutils literal notranslate"><span class="pre">Bias</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.end"><code class="docutils literal notranslate"><span class="pre">Bias.end()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.getAllIV"><code class="docutils literal notranslate"><span class="pre">Bias.getAllIV()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.get_iTES"><code class="docutils literal notranslate"><span class="pre">Bias.get_iTES()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.get_vTES"><code class="docutils literal notranslate"><span class="pre">Bias.get_vTES()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.iLNA_D"><code class="docutils literal notranslate"><span class="pre">Bias.iLNA_D()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.iSHUNT"><code class="docutils literal notranslate"><span class="pre">Bias.iSHUNT()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.vLNA_D"><code class="docutils literal notranslate"><span class="pre">Bias.vLNA_D()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.vLNA_G"><code class="docutils literal notranslate"><span class="pre">Bias.vLNA_G()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alicpt.Bias.vTES"><code class="docutils literal notranslate"><span class="pre">Bias.vTES()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#alicpt.listcom"><code class="docutils literal notranslate"><span class="pre">listcom()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AliCPT TES Bias System Python Interface</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">user</a></li>
+      <li class="breadcrumb-item active">alicpt module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/alicpt.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-alicpt">
+<span id="alicpt-module"></span><h1>alicpt module<a class="headerlink" href="#module-alicpt" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="alicpt.Bias">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">alicpt.</span></span><span class="sig-name descname"><span class="pre">Bias</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SerialPort</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Provides a comprehensive interface for controlling
+the AliCPT TES Bias System.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>SerialPort</strong> (<em>str</em>) – The name of the attached device</p>
+</dd>
+</dl>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Example</span><a class="headerlink" href="#id1" title="Link to this code"></a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">alicpt</span><span class="o">.</span><span class="n">Bias</span><span class="p">(</span><span class="s2">&quot;COM8)</span>
+</pre></div>
+</div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.end" title="Link to this definition"></a></dt>
+<dd><p>Close the comport after use has concluded.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.getAllIV">
+<span class="sig-name descname"><span class="pre">getAllIV</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.getAllIV"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.getAllIV" title="Link to this definition"></a></dt>
+<dd><p>Reads voltage and current values for all TES and LNA channels in the TES bias system.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.get_iTES">
+<span class="sig-name descname"><span class="pre">get_iTES</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.get_iTES"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.get_iTES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.get_vTES">
+<span class="sig-name descname"><span class="pre">get_vTES</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.get_vTES"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.get_vTES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.iLNA_D">
+<span class="sig-name descname"><span class="pre">iLNA_D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lnaBias</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setCurrent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.iLNA_D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.iLNA_D" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Adjusts I(out) for specified channel (1 or 2) until I(out) = current specified by user on LNA Ch. </dt><dd><p>“D” indicates LNA drain. 
+The ASU 4k LNA typically draws 4.5mA &#64; Temp = 10K.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lnaBias</strong> (<em>int</em>) – LNA Bias Channel (1 or 2)</p></li>
+<li><p><strong>setCurrent</strong> (<em>float</em>) – Desired Current in mA</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.iSHUNT">
+<span class="sig-name descname"><span class="pre">iSHUNT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imA</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.iSHUNT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.iSHUNT" title="Link to this definition"></a></dt>
+<dd><p>Adjusts V(out) for specified channel (1-4) until I(out) = current specified by user.
+Range = Depends on total Thévenin resistance of TES bias chain.
+Resistance of cryo wire + TES shunt resistance will limit the maximum current from the bias system.
+Maximum short circuit current of the TES bias system is 25mA. It is assumed that the Thévenin
+resistance of the cryo wire + TES shuts ≈ 200 Ohms which would mean the max current is 12.5 mA.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> (<em>int</em>) – Bias Channel</p></li>
+<li><p><strong>imA</strong> (<em>float</em>) – Desired current in mA</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.vLNA_D">
+<span class="sig-name descname"><span class="pre">vLNA_D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lnaBias</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">V</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.vLNA_D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.vLNA_D" title="Link to this definition"></a></dt>
+<dd><p>Adjusts V(out) for specified LNA channel (1 or 2) until bias system output voltage reaches user
+specified voltage. TES bias system output voltage ≠ voltage at LNA input.
+Voltage drop between TES bias system output and LNA Vin pin occurs due to cryo wire resistance.
+LNAs should be voltage biased to the operating current specified in their data sheets
+according to their temperature. Using the iLNA_D command is recommended. “D” indicates LNA drain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lnaBias</strong> (<em>int</em>) – LNA Bias Channel (1 or 2)</p></li>
+<li><p><strong>V</strong> (<em>float</em>) – Desired output Voltage</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.vLNA_G">
+<span class="sig-name descname"><span class="pre">vLNA_G</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.vLNA_G"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.vLNA_G" title="Link to this definition"></a></dt>
+<dd><p>Adjusts V(out) for LNA Gate.  
+The ASU LNA Gate is assumed to draw 0 A of current.
+The ASU 4k LNA typically uses a Gate voltage of 0V.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lna</strong> (<em>int</em>) – LNA Gate (1 or 2)</p></li>
+<li><p><strong>voltage</strong> (<em>float</em>) – Desired Voltage out</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="alicpt.Bias.vTES">
+<span class="sig-name descname"><span class="pre">vTES</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uv</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#Bias.vTES"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.Bias.vTES" title="Link to this definition"></a></dt>
+<dd><p>Adjusts V(out) for specified channel (1 - 4) until I(out) provides necessary current to reach TES voltage
+specified by user.  I x 400uOhm = V(uV). Range = 0 – 5V</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> (<em>int</em>) – Bias Channel (1-4)</p></li>
+<li><p><strong>uv</strong> (<em>float</em>) – Desired voltage in microvolts (0.0 to 5.0)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="alicpt.listcom">
+<span class="sig-prename descclassname"><span class="pre">alicpt.</span></span><span class="sig-name descname"><span class="pre">listcom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/alicpt.html#listcom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#alicpt.listcom" title="Link to this definition"></a></dt>
+<dd><p>Lists the serial devices connected to the host computer.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="user" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, FotonX.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

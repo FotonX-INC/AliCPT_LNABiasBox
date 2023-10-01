@@ -1,36 +1,8 @@
 from time import sleep, strftime, localtime
 import SerialInterface
 import numpy as np
-import serial.tools.list_ports
+import serial.tools.list_ports as stl
 
-"""Notes:
-
-9/3/2023 Eric Weeks
-
-Vreg 1 = TES1 = INA 3
-Vreg 2 = TES2 = INA 4
-Vreg 3 = TES3 = INA 5
-Vreg 4 = TES4 = INA 6
-Vreg 5 = LNA1 D = INA 1
-Vreg 6 = LNA1 G = INA 7
-Vreg 7 = LNA2 D = INA 2
-Vreg 8 = LNA2 G = INA 8
-
-Python Interface: (Using 1 line commands, not a GUI)
-
-[*]vTES Ch V(uV) //Adjusts POT wiper and then reads INA values until I x 400uOhm = V(uV) on Ch (Vreg 1-4)
-[*]iSHUNT Ch I(mA) //Adjusts POT wiper and then reads INA values until I = I(mA) on Ch (Vreg 1-4)
-[*]vLNA Ch D V(V) //Adjusts POT wiper and then reads INA values until V(bus) - V(shunt) = V(V) on Ch (Vreg 5 and 7)
-[*]iLNA Ch I(mA) //Adjusts POT wiper and then reads INA values until I = I(mA) for Ch
-[*]vLNA Ch G V(V) //Adjusts POT wiper and then reads INA values until V(bus) = V(V) on Ch (Vreg 6 and 8)
-
-[*]getiTES Ch
-[*]getvTES Ch
-[ ]get all iv //Reads INA values for all Ch. Labels should be displayed as TES1, TES2,... LNA1 D, LNA2 D...
-			 INA7 and INA8 are not used to measure current so only report LNA VG (VG voltages need a sign change +-).
-
-# FIXME: DETERMINE CAUSE OF 0 VALUE WIPER SETTINGS.
-"""
 
 VTES_TOLERANCE = 0.05
 ITES_TOLERANCE = 0.01
@@ -51,7 +23,30 @@ NAMES = [
 ]
 
 
+def listcom():
+    """Lists the serial devices connected to the host computer.
+    """
+    ports = stl.comports()
+    if not ports:
+        print("No COM ports available")
+    for p in ports:
+        print(p)
+
+
 class Bias:
+    """Provides a comprehensive interface for controlling
+    the AliCPT TES Bias System.
+
+    :param SerialPort: The name of the attached device
+    :type SerialPort: str
+
+    .. code-block::
+        :caption: Example
+
+            alicpt.Bias("COM8)
+
+    """
+
     def __init__(self, SerialPort) -> None:
         self.si = SerialInterface.SerialController(SerialPort)
         self.si.open()
@@ -59,9 +54,18 @@ class Bias:
         self.port = SerialPort
 
     def end(self):
+        """Close the comport after use has concluded."""
         self.si.close()
 
     def vTES(self, ch, uv):
+        """Adjusts V(out) for specified channel (1 - 4) until I(out) provides necessary current to reach TES voltage
+        specified by user.  I x 400uOhm = V(uV). Range = 0 – 5V
+
+        :param ch: Bias Channel (1-4)
+        :type ch: int
+        :param uv: Desired voltage in microvolts (0.0 to 5.0)
+        :type uv: float
+        """
         potvalue = self.si.get_wiper(1, ch - 1)
 
         MAXITER = 275
@@ -93,6 +97,18 @@ class Bias:
             i += 1
 
     def iSHUNT(self, ch, imA):
+        """Adjusts V(out) for specified channel (1-4) until I(out) = current specified by user.
+        Range = Depends on total Thévenin resistance of TES bias chain.
+        Resistance of cryo wire + TES shunt resistance will limit the maximum current from the bias system.
+        Maximum short circuit current of the TES bias system is 25mA. It is assumed that the Thévenin
+        resistance of the cryo wire + TES shuts ≈ 200 Ohms which would mean the max current is 12.5 mA.
+
+
+        :param ch: Bias Channel
+        :type ch: int
+        :param imA: Desired current in mA
+        :type imA: float
+        """
         potvalue = self.si.get_wiper(1, ch - 1)
 
         MAXITER = 275
@@ -125,7 +141,18 @@ class Bias:
         pass
 
     def vLNA_D(self, lnaBias, V):
-        # FIXME ALWAYS STARTS AT 0
+        """Adjusts V(out) for specified LNA channel (1 or 2) until bias system output voltage reaches user
+        specified voltage. TES bias system output voltage ≠ voltage at LNA input.
+        Voltage drop between TES bias system output and LNA Vin pin occurs due to cryo wire resistance.
+        LNAs should be voltage biased to the operating current specified in their data sheets
+        according to their temperature. Using the iLNA_D command is recommended. “D” indicates LNA drain.
+
+
+        :param lnaBias: LNA Bias Channel (1 or 2)
+        :type lnaBias: int
+        :param V: Desired output Voltage
+        :type V: float
+        """
         ch = wiper = 0
         if lnaBias == 1:
             wiper = 1 - 1
@@ -168,8 +195,17 @@ class Bias:
                 self.si.set_wiper(2, wiper, potvalue)
             i += 1
 
-    def iLNA(self, lnaBias, setCurrent):
-        # FIXME ALWAYS STARTS AT 0
+    def iLNA_D(self, lnaBias, setCurrent):
+        """Adjusts I(out) for specified channel (1 or 2) until I(out) = current specified by user on LNA Ch. 
+            “D” indicates LNA drain. 
+            The ASU 4k LNA typically draws 4.5mA @ Temp = 10K.
+
+
+        :param lnaBias: LNA Bias Channel (1 or 2)
+        :type lnaBias: int
+        :param setCurrent: Desired Current in mA
+        :type setCurrent: float
+        """
         ch = wiper = 0
         if lnaBias == 1:
             wiper = 1 - 1
@@ -211,12 +247,14 @@ class Bias:
             i += 1
 
     def vLNA_G(self, lna, voltage):
-        """aldfjalsdfjajf;la4rafoidsf
+        """Adjusts V(out) for LNA Gate.  
+        The ASU LNA Gate is assumed to draw 0 A of current.
+        The ASU 4k LNA typically uses a Gate voltage of 0V. 
 
-        :param lna: asdfkalsdfjasljdfjk
-        :type lna: asldfjkasldjkf
-        :param voltage: awelkjasdfljqwrjio
-        :type voltage: asdlfkjasdlfkj
+        :param lna: LNA Gate (1 or 2)
+        :type lna: int
+        :param voltage: Desired Voltage out
+        :type voltage: float
         """
         wiper = int(round(voltage / 0.000784))
         if wiper > 255:
@@ -243,6 +281,8 @@ class Bias:
         return np.average(vals) * 1e-2
 
     def getAllIV(self):
+        """Reads voltage and current values for all TES and LNA channels in the TES bias system.
+        """
         busVs = np.zeros(6)
         shuntMvs = np.zeros(6)
         currents = np.zeros(6)
@@ -258,57 +298,10 @@ class Bias:
             shuntMvs[i] = s
             currents[i] = curr / 100
             print(
-                f"{NAMES[i]}    \t\t       {INA219CHANMAP[i+1]}       \t       {b}        \t      {s}      \t        {curr/100}              "
+                f"{NAMES[i]}    \t\t       {INA219CHANMAP[i+1]}       \t       {b}        \t      {s}      \t        {round(curr/100,3)}              "
             )
         print(f"\nVG LNA1 = {self.lna_wiper_g[0]*.000784}")
         print(f"\nVG LNA2 = {self.lna_wiper_g[1]*.000784}")
         print("\n\n")
 
-    def getIVtoFile(self):
-        ts = strftime("%Y%m%d", localtime())
-        fn = f"bias-ivs-{ts}.csv"
-        csv = open(fn, "a")
-        e = csv.seek(0, 2)
-        if e == 0:
-            csv.write(
-                "Channel,INA219,Bus Voltage (V),Shunt Voltage (mV),Current (mA),VG LNA1,VG LNA2\n"
-            )
-
-        busVs = np.zeros(6)
-        shuntMvs = np.zeros(6)
-        currents = np.zeros(6)
-        for i in busVs:
-            b, s, curr = self.si.get_bsi(INA219CHANMAP[i + 1] - 1)
-            busVs[i] = b
-            shuntMvs[i] = s
-            currents[i] = curr / 100
-            csv.write(f"{NAMES[i]},{INA219CHANMAP[i+1]},{b},{s},{curr/100},-\n")
-        csv.write(f"{NAMES[6]},-,-,-,-,{self.lna_wiper_g[0]*.000784}\n")
-        csv.write(f"{NAMES[7]},-,-,-,-,{self.lna_wiper_g[1]*.000784}\n")
-        csv.close()
-
-
-def test():
-    l = Bias("COM10")
-    l.si.set_allgpio(0b111111111)
-    # l.si.set_gpio(0, 1)
-    # l.si.set_gpio(1, 1)
-    # l.si.set_gpio(5, 1)
-    l.si.set_wiper(1, 0, 255)
-    l.si.set_wiper(1, 1, 255)
-    l.si.set_wiper(1, 2, 255)
-    l.si.set_wiper(1, 3, 255)
-    l.si.set_wiper(2, 2 - 1, 255)
-    l.si.set_wiper(1, 2, 255)
-    # l.vTES(1, 1.00)
-    # l.iTES(1, 1.3)
-    # l.vLNA_D(1, 3.0)
-    # l.iLNA(1, 20)
-    l.vLNA_G(1, 0.000784)
-    l.vLNA_G(2, 0.000784 * 2)
-    l.getAllIV()
-    l.end()
-
-
-if __name__ == "__main__":
-    test()
+    
