@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>alicpt &mdash; AliCPT TES Bias System Python Interface 1.0 documentation</title>
+  <title>alicpt &mdash; AliCPT TES Bias System Python Interface 1.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -12,7 +12,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="../_static/documentation_options.js?v=56dcb7b8"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -41,7 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">AliCPT_LNABiasBox</a></li>
 </ul>
 
         </div>
@@ -97,8 +97,7 @@
 <div class="viewcode-block" id="listcom">
 <a class="viewcode-back" href="../alicpt.html#alicpt.listcom">[docs]</a>
 <span class="k">def</span> <span class="nf">listcom</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lists the serial devices connected to the host computer.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lists the serial devices connected to the host computer.&quot;&quot;&quot;</span>
     <span class="n">ports</span> <span class="o">=</span> <span class="n">stl</span><span class="o">.</span><span class="n">comports</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ports</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No COM ports available&quot;</span><span class="p">)</span>
@@ -117,32 +116,66 @@
 <span class="sd">    :type SerialPort: str</span>
 
 <span class="sd">    .. code-block::</span>
-<span class="sd">        :caption: Example</span>
+<span class="sd">        :caption: Example Code</span>
 
-<span class="sd">            alicpt.Bias(&quot;COM8)</span>
+<span class="sd">            alicpt.listcom()</span>
+<span class="sd">            alicpt.Bias(&quot;COM8&quot;)</span>
+
+<span class="sd">    .. Warning::</span>
+
+<span class="sd">        Connecting to the COM port forces the microcontroller to revert all settings back to default.</span>
+<span class="sd">        i.e. All channels revert to 0 V</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">SerialPort</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">si</span> <span class="o">=</span> <span class="n">SerialInterface</span><span class="o">.</span><span class="n">SerialController</span><span class="p">(</span><span class="n">SerialPort</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lna_wiper_g</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">SerialPort</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Bias.end">
-<a class="viewcode-back" href="../alicpt.html#alicpt.Bias.end">[docs]</a>
-    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close the comport after use has concluded.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Bias.get_vTES">
+<a class="viewcode-back" href="../alicpt.html#alicpt.Bias.get_vTES">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_vTES</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads and calculates the TES Voltage in microVolts</span>
+
+<span class="sd">        :param ch: Channel</span>
+<span class="sd">        :type ch: int</span>
+<span class="sd">        :return: TES Voltage (in microvolts)</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">get_bsi</span><span class="p">(</span><span class="n">INA219CHANMAP</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr</span>
+        <span class="n">VuV</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4e-3</span> <span class="o">*</span> <span class="mf">1e6</span> <span class="o">*</span> <span class="mf">1e-2</span>
+        <span class="k">return</span> <span class="n">VuV</span></div>
+
+
+<div class="viewcode-block" id="Bias.get_iTES">
+<a class="viewcode-back" href="../alicpt.html#alicpt.Bias.get_iTES">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_iTES</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads and calculates the TES current</span>
+
+<span class="sd">        :param ch: Channel to read.</span>
+<span class="sd">        :type ch: int</span>
+<span class="sd">        :return: Current in mA</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">get_bsi</span><span class="p">(</span><span class="n">INA219CHANMAP</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-2</span></div>
 
 
 <div class="viewcode-block" id="Bias.vTES">
 <a class="viewcode-back" href="../alicpt.html#alicpt.Bias.vTES">[docs]</a>
     <span class="k">def</span> <span class="nf">vTES</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">uv</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts V(out) for specified channel (1 - 4) until I(out) provides necessary current to reach TES voltage</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts V(out) for specified TES channel (1 - 4) until I(out) provides necessary current to reach TES voltage</span>
 <span class="sd">        specified by user.  I x 400uOhm = V(uV). Range = 0 – 5V</span>
 
-<span class="sd">        :param ch: Bias Channel (1-4)</span>
+<span class="sd">        :param ch: TES Bias Channel (1-4)</span>
 <span class="sd">        :type ch: int</span>
 <span class="sd">        :param uv: Desired voltage in microvolts (0.0 to 5.0)</span>
 <span class="sd">        :type uv: float</span>
@@ -181,14 +214,14 @@
 <div class="viewcode-block" id="Bias.iSHUNT">
 <a class="viewcode-back" href="../alicpt.html#alicpt.Bias.iSHUNT">[docs]</a>
     <span class="k">def</span> <span class="nf">iSHUNT</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">imA</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts V(out) for specified channel (1-4) until I(out) = current specified by user.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts V(out) for specified TES channel (1-4) until I(out) = current specified by user.</span>
 <span class="sd">        Range = Depends on total Thévenin resistance of TES bias chain.</span>
 <span class="sd">        Resistance of cryo wire + TES shunt resistance will limit the maximum current from the bias system.</span>
 <span class="sd">        Maximum short circuit current of the TES bias system is 25mA. It is assumed that the Thévenin</span>
-<span class="sd">        resistance of the cryo wire + TES shuts ≈ 200 Ohms which would mean the max current is 12.5 mA.</span>
+<span class="sd">        resistance of the cryo wire + TES shunts ≈ 200 Ohms which would mean the max current is 12.5 mA.</span>
 
 
-<span class="sd">        :param ch: Bias Channel</span>
+<span class="sd">        :param ch: TES Bias Channel</span>
 <span class="sd">        :type ch: int</span>
 <span class="sd">        :param imA: Desired current in mA</span>
 <span class="sd">        :type imA: float</span>
@@ -227,7 +260,7 @@
 
 <div class="viewcode-block" id="Bias.vLNA_D">
 <a class="viewcode-back" href="../alicpt.html#alicpt.Bias.vLNA_D">[docs]</a>
-    <span class="k">def</span> <span class="nf">vLNA_D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lnaBias</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">vLNA_D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">LNACh</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts V(out) for specified LNA channel (1 or 2) until bias system output voltage reaches user</span>
 <span class="sd">        specified voltage. TES bias system output voltage ≠ voltage at LNA input.</span>
 <span class="sd">        Voltage drop between TES bias system output and LNA Vin pin occurs due to cryo wire resistance.</span>
@@ -235,13 +268,13 @@
 <span class="sd">        according to their temperature. Using the iLNA_D command is recommended. “D” indicates LNA drain.</span>
 
 
-<span class="sd">        :param lnaBias: LNA Bias Channel (1 or 2)</span>
-<span class="sd">        :type lnaBias: int</span>
+<span class="sd">        :param LNACh: LNA Bias Channel (1 or 2)</span>
+<span class="sd">        :type LNACh: int</span>
 <span class="sd">        :param V: Desired output Voltage</span>
 <span class="sd">        :type V: float</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ch</span> <span class="o">=</span> <span class="n">wiper</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="n">lnaBias</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">LNACh</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">wiper</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">wiper</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">1</span>
@@ -256,7 +289,7 @@
                 <span class="k">break</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
-                <span class="n">bus_V</span><span class="p">,</span> <span class="n">shunt_mV</span><span class="p">,</span> <span class="n">curr_mA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">get_bsi</span><span class="p">(</span><span class="n">lnaBias</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">bus_V</span><span class="p">,</span> <span class="n">shunt_mV</span><span class="p">,</span> <span class="n">curr_mA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">get_bsi</span><span class="p">(</span><span class="n">LNACh</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">bus_V</span>
             <span class="n">bus_V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
 
@@ -285,19 +318,19 @@
 
 <div class="viewcode-block" id="Bias.iLNA_D">
 <a class="viewcode-back" href="../alicpt.html#alicpt.Bias.iLNA_D">[docs]</a>
-    <span class="k">def</span> <span class="nf">iLNA_D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lnaBias</span><span class="p">,</span> <span class="n">setCurrent</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts I(out) for specified channel (1 or 2) until I(out) = current specified by user on LNA Ch. </span>
-<span class="sd">            “D” indicates LNA drain. </span>
+    <span class="k">def</span> <span class="nf">iLNA_D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">LNACh</span><span class="p">,</span> <span class="n">setCurrent</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts I(out) for specified channel (1 or 2) until I(out) = current specified by user on LNA Ch.</span>
+<span class="sd">            “D” indicates LNA drain.</span>
 <span class="sd">            The ASU 4k LNA typically draws 4.5mA @ Temp = 10K.</span>
 
 
-<span class="sd">        :param lnaBias: LNA Bias Channel (1 or 2)</span>
-<span class="sd">        :type lnaBias: int</span>
+<span class="sd">        :param LNACh: LNA Bias Channel (1 or 2)</span>
+<span class="sd">        :type LNACh: int</span>
 <span class="sd">        :param setCurrent: Desired Current in mA</span>
 <span class="sd">        :type setCurrent: float</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ch</span> <span class="o">=</span> <span class="n">wiper</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="n">lnaBias</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">LNACh</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">wiper</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">wiper</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">1</span>
@@ -312,7 +345,7 @@
                 <span class="k">break</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
-                <span class="n">bus_V</span><span class="p">,</span> <span class="n">shunt_mV</span><span class="p">,</span> <span class="n">curr_mA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">get_bsi</span><span class="p">(</span><span class="n">lnaBias</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">bus_V</span><span class="p">,</span> <span class="n">shunt_mV</span><span class="p">,</span> <span class="n">curr_mA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">get_bsi</span><span class="p">(</span><span class="n">LNACh</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_mA</span>
             <span class="n">curr_mA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
 
@@ -340,9 +373,9 @@
 <div class="viewcode-block" id="Bias.vLNA_G">
 <a class="viewcode-back" href="../alicpt.html#alicpt.Bias.vLNA_G">[docs]</a>
     <span class="k">def</span> <span class="nf">vLNA_G</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lna</span><span class="p">,</span> <span class="n">voltage</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts V(out) for LNA Gate.  </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjusts V(out) for LNA Gate.</span>
 <span class="sd">        The ASU LNA Gate is assumed to draw 0 A of current.</span>
-<span class="sd">        The ASU 4k LNA typically uses a Gate voltage of 0V. </span>
+<span class="sd">        The ASU 4k LNA typically uses a Gate voltage of 0V.</span>
 
 <span class="sd">        :param lna: LNA Gate (1 or 2)</span>
 <span class="sd">        :type lna: int</span>
@@ -359,32 +392,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lna_wiper_g</span><span class="p">[</span><span class="n">lna</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">wiper</span></div>
 
 
-<div class="viewcode-block" id="Bias.get_vTES">
-<a class="viewcode-back" href="../alicpt.html#alicpt.Bias.get_vTES">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_vTES</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">):</span>
-        <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
-            <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">get_bsi</span><span class="p">(</span><span class="n">INA219CHANMAP</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr</span>
-        <span class="n">VuV</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4e-3</span> <span class="o">*</span> <span class="mf">1e6</span> <span class="o">*</span> <span class="mf">1e-2</span>
-        <span class="k">return</span> <span class="n">VuV</span></div>
-
-
-<div class="viewcode-block" id="Bias.get_iTES">
-<a class="viewcode-back" href="../alicpt.html#alicpt.Bias.get_iTES">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_iTES</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">):</span>
-        <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
-            <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">get_bsi</span><span class="p">(</span><span class="n">INA219CHANMAP</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-2</span></div>
-
-
 <div class="viewcode-block" id="Bias.getAllIV">
 <a class="viewcode-back" href="../alicpt.html#alicpt.Bias.getAllIV">[docs]</a>
     <span class="k">def</span> <span class="nf">getAllIV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads voltage and current values for all TES and LNA channels in the TES bias system.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads voltage and current values for all TES and LNA channels in the TES bias system.&quot;&quot;&quot;</span>
         <span class="n">busVs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
         <span class="n">shuntMvs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
         <span class="n">currents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
@@ -405,10 +416,15 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">VG LNA1 = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lna_wiper_g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mf">.000784</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">VG LNA2 = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lna_wiper_g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">.000784</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bias.end">
+<a class="viewcode-back" href="../alicpt.html#alicpt.Bias.end">[docs]</a>
+    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close the comport after use has concluded.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">si</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 </div>
 
-
-    
 </pre></div>
 
            </div>

@@ -6,17 +6,18 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import sys, os
-sys.path.insert(0, os.path.abspath("../../../user"))
+sys.path.insert(0, os.path.abspath("../../user"))
 
 project = 'AliCPT TES Bias System Python Interface'
 copyright = '2023, FotonX'
 author = 'FotonX'
-release = '1.0'
+release = '1.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.todo", "sphinx.ext.viewcode"]
+autodoc_member_order = 'bysource'
 
 templates_path = ['templates']
 exclude_patterns = []
@@ -27,4 +28,4 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
-html_static_path = ['static']
+html_static_path = ['_static']

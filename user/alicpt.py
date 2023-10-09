@@ -24,8 +24,7 @@ NAMES = [
 
 
 def listcom():
-    """Lists the serial devices connected to the host computer.
-    """
+    """Lists the serial devices connected to the host computer."""
     ports = stl.comports()
     if not ports:
         print("No COM ports available")
@@ -41,27 +40,58 @@ class Bias:
     :type SerialPort: str
 
     .. code-block::
-        :caption: Example
+        :caption: Example Code
 
-            alicpt.Bias("COM8)
+            alicpt.listcom()
+            alicpt.Bias("COM8")
+
+    .. Warning::
+
+        Connecting to the COM port forces the microcontroller to revert all settings back to default.
+        i.e. All channels revert to 0 V
 
     """
 
     def __init__(self, SerialPort) -> None:
         self.si = SerialInterface.SerialController(SerialPort)
-        self.si.open()
         self.lna_wiper_g = [0, 0]
         self.port = SerialPort
+        self.si.open()
 
-    def end(self):
-        """Close the comport after use has concluded."""
-        self.si.close()
+    def get_vTES(self, ch):
+        """Reads and calculates the TES Voltage in microVolts
+
+        :param ch: Channel
+        :type ch: int
+        :return: TES Voltage (in microvolts)
+        :rtype: float
+        """
+        vals = np.zeros(10)
+        for i, v in enumerate(vals):
+            b, s, curr = self.si.get_bsi(INA219CHANMAP[ch] - 1)
+            vals[i] = curr
+        VuV = (np.average(vals) * 1e-3) * 0.4e-3 * 1e6 * 1e-2
+        return VuV
+
+    def get_iTES(self, ch):
+        """Reads and calculates the TES current
+
+        :param ch: Channel to read.
+        :type ch: int
+        :return: Current in mA
+        :rtype: float
+        """
+        vals = np.zeros(10)
+        for i, v in enumerate(vals):
+            b, s, curr = self.si.get_bsi(INA219CHANMAP[ch] - 1)
+            vals[i] = curr
+        return np.average(vals) * 1e-2
 
     def vTES(self, ch, uv):
-        """Adjusts V(out) for specified channel (1 - 4) until I(out) provides necessary current to reach TES voltage
+        """Adjusts V(out) for specified TES channel (1 - 4) until I(out) provides necessary current to reach TES voltage
         specified by user.  I x 400uOhm = V(uV). Range = 0 – 5V
 
-        :param ch: Bias Channel (1-4)
+        :param ch: TES Bias Channel (1-4)
         :type ch: int
         :param uv: Desired voltage in microvolts (0.0 to 5.0)
         :type uv: float
@@ -97,14 +127,14 @@ class Bias:
             i += 1
 
     def iSHUNT(self, ch, imA):
-        """Adjusts V(out) for specified channel (1-4) until I(out) = current specified by user.
+        """Adjusts V(out) for specified TES channel (1-4) until I(out) = current specified by user.
         Range = Depends on total Thévenin resistance of TES bias chain.
         Resistance of cryo wire + TES shunt resistance will limit the maximum current from the bias system.
         Maximum short circuit current of the TES bias system is 25mA. It is assumed that the Thévenin
-        resistance of the cryo wire + TES shuts ≈ 200 Ohms which would mean the max current is 12.5 mA.
+        resistance of the cryo wire + TES shunts ≈ 200 Ohms which would mean the max current is 12.5 mA.
 
 
-        :param ch: Bias Channel
+        :param ch: TES Bias Channel
         :type ch: int
         :param imA: Desired current in mA
         :type imA: float
@@ -140,7 +170,7 @@ class Bias:
             i += 1
         pass
 
-    def vLNA_D(self, lnaBias, V):
+    def vLNA_D(self, LNACh, V):
         """Adjusts V(out) for specified LNA channel (1 or 2) until bias system output voltage reaches user
         specified voltage. TES bias system output voltage ≠ voltage at LNA input.
         Voltage drop between TES bias system output and LNA Vin pin occurs due to cryo wire resistance.
@@ -148,13 +178,13 @@ class Bias:
         according to their temperature. Using the iLNA_D command is recommended. “D” indicates LNA drain.
 
 
-        :param lnaBias: LNA Bias Channel (1 or 2)
-        :type lnaBias: int
+        :param LNACh: LNA Bias Channel (1 or 2)
+        :type LNACh: int
         :param V: Desired output Voltage
         :type V: float
         """
         ch = wiper = 0
-        if lnaBias == 1:
+        if LNACh == 1:
             wiper = 1 - 1
         else:
             wiper = 3 - 1
@@ -169,7 +199,7 @@ class Bias:
                 break
             vals = np.zeros(10)
             for i, v in enumerate(vals):
-                bus_V, shunt_mV, curr_mA = self.si.get_bsi(lnaBias - 1)
+                bus_V, shunt_mV, curr_mA = self.si.get_bsi(LNACh - 1)
                 vals[i] = bus_V
             bus_V = np.average(vals)
 
@@ -195,19 +225,19 @@ class Bias:
                 self.si.set_wiper(2, wiper, potvalue)
             i += 1
 
-    def iLNA_D(self, lnaBias, setCurrent):
-        """Adjusts I(out) for specified channel (1 or 2) until I(out) = current specified by user on LNA Ch. 
-            “D” indicates LNA drain. 
+    def iLNA_D(self, LNACh, setCurrent):
+        """Adjusts I(out) for specified channel (1 or 2) until I(out) = current specified by user on LNA Ch.
+            “D” indicates LNA drain.
             The ASU 4k LNA typically draws 4.5mA @ Temp = 10K.
 
 
-        :param lnaBias: LNA Bias Channel (1 or 2)
-        :type lnaBias: int
+        :param LNACh: LNA Bias Channel (1 or 2)
+        :type LNACh: int
         :param setCurrent: Desired Current in mA
         :type setCurrent: float
         """
         ch = wiper = 0
-        if lnaBias == 1:
+        if LNACh == 1:
             wiper = 1 - 1
         else:
             wiper = 3 - 1
@@ -222,7 +252,7 @@ class Bias:
                 break
             vals = np.zeros(10)
             for i, v in enumerate(vals):
-                bus_V, shunt_mV, curr_mA = self.si.get_bsi(lnaBias - 1)
+                bus_V, shunt_mV, curr_mA = self.si.get_bsi(LNACh - 1)
                 vals[i] = curr_mA
             curr_mA = np.average(vals) / 100
 
@@ -247,9 +277,9 @@ class Bias:
             i += 1
 
     def vLNA_G(self, lna, voltage):
-        """Adjusts V(out) for LNA Gate.  
+        """Adjusts V(out) for LNA Gate.
         The ASU LNA Gate is assumed to draw 0 A of current.
-        The ASU 4k LNA typically uses a Gate voltage of 0V. 
+        The ASU 4k LNA typically uses a Gate voltage of 0V.
 
         :param lna: LNA Gate (1 or 2)
         :type lna: int
@@ -265,24 +295,8 @@ class Bias:
 
         self.lna_wiper_g[lna - 1] = wiper
 
-    def get_vTES(self, ch):
-        vals = np.zeros(10)
-        for i, v in enumerate(vals):
-            b, s, curr = self.si.get_bsi(INA219CHANMAP[ch] - 1)
-            vals[i] = curr
-        VuV = (np.average(vals) * 1e-3) * 0.4e-3 * 1e6 * 1e-2
-        return VuV
-
-    def get_iTES(self, ch):
-        vals = np.zeros(10)
-        for i, v in enumerate(vals):
-            b, s, curr = self.si.get_bsi(INA219CHANMAP[ch] - 1)
-            vals[i] = curr
-        return np.average(vals) * 1e-2
-
     def getAllIV(self):
-        """Reads voltage and current values for all TES and LNA channels in the TES bias system.
-        """
+        """Reads voltage and current values for all TES and LNA channels in the TES bias system."""
         busVs = np.zeros(6)
         shuntMvs = np.zeros(6)
         currents = np.zeros(6)
@@ -304,4 +318,6 @@ class Bias:
         print(f"\nVG LNA2 = {self.lna_wiper_g[1]*.000784}")
         print("\n\n")
 
-    
+    def end(self):
+        """Close the comport after use has concluded."""
+        self.si.close()

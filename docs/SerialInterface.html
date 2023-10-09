@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SerialInterface module &mdash; AliCPT TES Bias System Python Interface 1.0 documentation</title>
+  <title>SerialInterface module &mdash; AliCPT TES Bias System Python Interface 1.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="_static/documentation_options.js?v=56dcb7b8"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -42,7 +42,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">AliCPT_LNABiasBox</a></li>
 </ul>
 
         </div>
@@ -94,53 +94,13 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SerialInterface.</span></span><span class="sig-name descname"><span class="pre">SerialController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sercom</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.close">
-<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.close" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.get_bsi">
-<span class="sig-name descname"><span class="pre">get_bsi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chan</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.get_bsi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.get_bsi" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.get_gpio">
-<span class="sig-name descname"><span class="pre">get_gpio</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.get_gpio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.get_gpio" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.get_wiper">
-<span class="sig-name descname"><span class="pre">get_wiper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wipernum</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.get_wiper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.get_wiper" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="SerialInterface.SerialController.open">
 <span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.open" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.set_allgpio">
-<span class="sig-name descname"><span class="pre">set_allgpio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pinstates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.set_allgpio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.set_allgpio" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.set_gpio">
-<span class="sig-name descname"><span class="pre">set_gpio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.set_gpio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.set_gpio" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.set_wiper">
-<span class="sig-name descname"><span class="pre">set_wiper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wipernum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.set_wiper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.set_wiper" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.test_connection">
-<span class="sig-name descname"><span class="pre">test_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.test_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.test_connection" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SerialInterface.SerialController.testfloat">
-<span class="sig-name descname"><span class="pre">testfloat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.testfloat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.testfloat" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="SerialInterface.SerialController.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.close" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -156,6 +116,46 @@
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SerialInterface.SerialController.test_connection">
+<span class="sig-name descname"><span class="pre">test_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.test_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.test_connection" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SerialInterface.SerialController.get_wiper">
+<span class="sig-name descname"><span class="pre">get_wiper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wipernum</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.get_wiper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.get_wiper" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SerialInterface.SerialController.set_wiper">
+<span class="sig-name descname"><span class="pre">set_wiper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wipernum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.set_wiper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.set_wiper" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SerialInterface.SerialController.get_gpio">
+<span class="sig-name descname"><span class="pre">get_gpio</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.get_gpio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.get_gpio" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SerialInterface.SerialController.set_allgpio">
+<span class="sig-name descname"><span class="pre">set_allgpio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pinstates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.set_allgpio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.set_allgpio" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SerialInterface.SerialController.set_gpio">
+<span class="sig-name descname"><span class="pre">set_gpio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.set_gpio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.set_gpio" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SerialInterface.SerialController.get_bsi">
+<span class="sig-name descname"><span class="pre">get_bsi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chan</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.get_bsi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.get_bsi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SerialInterface.SerialController.testfloat">
+<span class="sig-name descname"><span class="pre">testfloat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/SerialInterface.html#SerialController.testfloat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SerialInterface.SerialController.testfloat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
